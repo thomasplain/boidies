@@ -27,7 +27,7 @@ def update(dt):
 
     map(lambda pos: graphics.circle(pos, 1, graphics.WHITE), zip(*boid_obj.boidflock)[0])
 
-    graphics.circle(boid_obj.greenie_pos, 5, graphics.GREEN)
+#    graphics.circle(boid_obj.greenie_pos, 5, graphics.GREEN)
 
     graphics.draw()
 
