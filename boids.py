@@ -25,6 +25,7 @@ Ideas for version 2.0:
 from random import randrange, random, seed
 import time
 import graphics
+import pygame
 from pygame.math import Vector2
 import pygame.sprite
 
@@ -34,8 +35,17 @@ import math
 class Boid(pygame.sprite.Sprite):
     def __init__(self, pos, vel):
         super(Boid, self).__init__()
-        self.position = pos
+        self.rect = pygame.Rect(pos.x, pos.y, 1, 1)
         self.velocity = vel
+
+    @property
+    def position(self):
+        return Vector2(self.rect.x, self.rect.y)
+
+    @position.setter
+    def position(self, pos):
+        self.rect.x = pos.x
+        self.rect.y = pos.y
 
     def update(self, dt, mob, MINX, MAXX, MINY, MAXY):
         if self.position.x < MINX:

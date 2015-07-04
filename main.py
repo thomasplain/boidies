@@ -10,9 +10,7 @@ import math
 
 from random import randrange, random, seed
 
-boid_obj = None
-
-boidflock = None
+boidflock = pygame.sprite.Group()
 
 def start():
     global boidflock
@@ -33,24 +31,29 @@ def start():
         velocity = pygame.math.Vector2((random() * 2) - 1, (random() * 2) - 1)
         velocity.scale_to_length(10)
 
-        return boids.Boid(position, velocity)
+        boidflock.add(boids.Boid(position, velocity))
 
-    boidflock = [generate_boid() for x in range(20)]
+    for _ in range(50):
+        generate_boid()
 
-    list(map(lambda b: print(b.velocity), boidflock))
+    for b in boidflock:
+        b.image = pygame.Surface((1, 1))
+        b.image.fill(graphics.WHITE)
+#        b.rect = b.image.get_rect()
 
-    map(lambda b: graphics.circle(b.position, 1, graphics.WHITE), boidflock)
+    boidflock.draw(graphics.screen)
 
     graphics.draw()
 
 def update(dt):
     def boid_update(b):
-        without_me = filter(lambda x: x != b, boidflock)
+        without_me = boidflock.copy()
+        without_me.remove(b)
 
-        def collision_occurred(m):
-            return math.sqrt(b.position.distance_squared_to(m.position)) <= 100
+        collider = pygame.Rect(0,0,50,50)
+        collider.center = b.rect.center
 
-        mob = filter(collision_occurred, without_me)
+        mob = filter(lambda b: collider.colliderect(b), without_me)
 
         b.update(dt, mob, 0, 640, 0, 480)
 
@@ -58,9 +61,7 @@ def update(dt):
 
     graphics.bg_colour(graphics.BLACK)
 
-    map(lambda b: graphics.circle(b.position, 1, graphics.WHITE), boidflock)
-
-#    graphics.circle(boid_obj.greenie_pos, 5, graphics.GREEN)
+    boidflock.draw(graphics.screen)
 
     graphics.draw()
 
@@ -77,8 +78,6 @@ def update_loop(fps):
 
         sleep_time = max(0, 1.0 / fps - (time.time() - loop_start))
 
-        time.sleep(sleep_time)
-
 if __name__ == '__main__':
     start()
-    update_loop(25)
+    update_loop(0.5)
