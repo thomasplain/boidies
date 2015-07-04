@@ -29,7 +29,7 @@ def start():
         position = pygame.math.Vector2(x, y)
         #splat a boid, add to flock list
         velocity = pygame.math.Vector2((random() * 2) - 1, (random() * 2) - 1)
-        velocity.scale_to_length(10)
+        velocity.scale_to_length(50)
 
         boidflock.add(boids.Boid(position, velocity))
 
@@ -39,25 +39,13 @@ def start():
     for b in boidflock:
         b.image = pygame.Surface((1, 1))
         b.image.fill(graphics.WHITE)
-#        b.rect = b.image.get_rect()
 
     boidflock.draw(graphics.screen)
 
     graphics.draw()
 
 def update(dt):
-    def boid_update(b):
-        without_me = boidflock.copy()
-        without_me.remove(b)
-
-        collider = pygame.Rect(0,0,50,50)
-        collider.center = b.rect.center
-
-        mob = filter(lambda b: collider.colliderect(b), without_me)
-
-        b.update(dt, mob, 0, 640, 0, 480)
-
-    map(boid_update, boidflock)
+    boidflock.update(dt, 0, 640, 0, 480)
 
     graphics.bg_colour(graphics.BLACK)
 
@@ -80,4 +68,4 @@ def update_loop(fps):
 
 if __name__ == '__main__':
     start()
-    update_loop(0.5)
+    update_loop(25)

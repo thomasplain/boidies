@@ -33,21 +33,28 @@ import operator
 import math
 
 class Boid(pygame.sprite.Sprite):
-    def __init__(self, pos, vel):
+    def __init__(self, pos, vel, top_speed = 50):
         super(Boid, self).__init__()
+        self.pos_vec = pos
         self.rect = pygame.Rect(pos.x, pos.y, 1, 1)
         self.velocity = vel
+        self.heading = vel
+        self.top_speed = top_speed
 
     @property
     def position(self):
-        return Vector2(self.rect.x, self.rect.y)
+        return self.pos_vec
 
     @position.setter
     def position(self, pos):
-        self.rect.x = pos.x
-        self.rect.y = pos.y
+        self.pos_vec = pos
+        self.rect.x = self.pos_vec.x
+        self.rect.y = self.pos_vec.y
 
-    def update(self, dt, mob, MINX, MAXX, MINY, MAXY):
+    def update(self, dt, MINX, MAXX, MINY, MAXY):
+
+        mob = self.groups()[0]
+
         if self.position.x < MINX:
             self.position.x = MINX
             self.velocity.x = -self.velocity.x
@@ -68,17 +75,12 @@ class Boid(pygame.sprite.Sprite):
         v2 = self.rule2(mob)              #get the vector for rule 2
         v3 = self.rule3(mob)              #get the vector for rule 3
 
-        boidvelocity = v1 + v2 + v3  #accumulate the rules vector results
-        if (boidvelocity.length() != 0):
-            boidvelocity.scale_to_length(20)
-
-        self.position += dt * boidvelocity
-        self.velocity = boidvelocity #move the boid
+        boidvelocity = v1 + v2 + v3
+        boidvelocity.scale_to_length(self.top_speed)  #accumulate the rules vector results
+        self.velocity = self.velocity.lerp(boidvelocity, 0.25)
+        self.position += dt * self.velocity
 
     def rule1(self, mob):    #Rule 1:  boids fly to perceived flock center
-        if not mob:
-            return Vector2(0, 0)
-
         pfc = reduce(operator.add, [x.position for x in mob], Vector2(0, 0))
 
         pfc = pfc/len(mob)             #average the pfc
@@ -86,17 +88,24 @@ class Boid(pygame.sprite.Sprite):
         return (pfc - self.position)
 
     def rule2(self, mob):    #Rule 2: boids avoid other boids
-        if not mob:
-            return Vector2(0, 0)
+        too_close = pygame.Rect(self)
+        too_close.width = 50
+        too_close.height = 50
+
+        mob = filter(lambda b: too_close.colliderect(b), mob)
 
         def get_nudge(x):
+            if x == self:
+                return Vector2(0, 0)
             dir = self.position - x.position
-            mag = 20 - dir.length()
+            mag = 100 - dir.length()
 
             try:
                 return dir.normalize() * mag
             except:
-                return Vector2(random(), random()).normalize() * mag
+                # return Vector2((random() * 2) - 1, \
+                #                (random() * 2) - 1)
+                return Vector2(0, 0)
 
         nudges = map(get_nudge, mob)
 
