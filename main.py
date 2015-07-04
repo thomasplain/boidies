@@ -14,7 +14,7 @@ def start():
 
     graphics.bg_colour(graphics.BLACK)
 
-    boid_obj = boids.Boids()
+    boid_obj = boids.Boids(dimensions={'x':640,'y':480})
 
     map(lambda pos: graphics.circle(pos, 1, graphics.WHITE), zip(*boid_obj.boidflock)[0])
 

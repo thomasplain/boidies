@@ -22,7 +22,8 @@ Ideas for version 2.0:
     cone boid shape --> change boid axis to indicate direction
 """
 
-from random import randrange, random
+from random import randrange, random, seed
+import time
 import graphics
 from pygame.math import Vector2
 
@@ -34,10 +35,8 @@ class Boid(object):
         pass
 
 class Boids:
-    def __init__(self, numboids = 10, sidesize = 120.0):     #class constructor with default parameters filled
+    def __init__(self, numboids = 10, dimensions={'x':640, 'y':480}):     #class constructor with default parameters filled
         #class constants
-
-        self.SIDE = sidesize            #unit for a side of the flight space
 
         #the next six lines define the boundaries of the torus
         """
@@ -46,10 +45,12 @@ class Boids:
         note:   cartesian matrices don't handle toruses very well, but I couldn't
                 figure out a better way to keep the flock in view.
         """
-        self.MINX = self.SIDE * -1.0 + 160     #left
-        self.MINY = self.SIDE * -1.0 + 120   #bottom
-        self.MAXX = self.SIDE + 160           #right
-        self.MAXY = self.SIDE +120          #top
+        seed(time.time())
+
+        self.MINX = 0     #left
+        self.MINY = 0   #bottom
+        self.MAXX = dimensions['x']           #right
+        self.MAXY = dimensions['y']          #top
 
         self.RADIUS = 1                 #radius of a boid.  I wimped and used spheres.
         self.NEARBY = self.RADIUS * 5   #the 'halo' of space around each boid
@@ -77,22 +78,27 @@ class Boids:
             y = randrange(self.MINY, self.MAXY) #random up-down
 
             #splat a boid, add to flock list
-            self.boidflock.append((Vector2(x, y), Vector2(random(), random())))
+            velocity = Vector2((random() * 2) - 1, (random() * 2) - 1).normalize() * 10
+            self.boidflock.append((Vector2(x, y), velocity))
 
     def moveAllBoidsToNewPositions(self, dt):
         for i, b in enumerate(self.boidflock):
             #manage boids hitting the torus 'boundaries'
             if b[0].x < self.MINX:
                 b[0].x = self.MINX
+                b[1].x = -b[1].x
 
             if b[0].x > self.MAXX:
                 b[0].x = self.MAXX
+                b[1].x = -b[1].x
 
             if b[0].y < self.MINY:
                 b[0].y = self.MINY
+                b[1].y = -b[1].y
 
             if b[0].y > self.MAXY:
                 b[0].y = self.MAXY
+                b[1].y = -b[1].y
 
             collision_radius = 100
 
